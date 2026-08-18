@@ -1,0 +1,38 @@
+name: Promote to master
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  promote:
+    if: github.event.label.name == 'ready-for-master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Cherry-pick to master
+        id: cherry
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout master
+          git checkout -b promote/pr-${{ github.event.pull_request.number }}
+          git cherry-pick -x -m 1 ${{ github.event.pull_request.merge_commit_sha }}
+          git push origin promote/pr-${{ github.event.pull_request.number }}
+      - name: Create PR
+        if: steps.cherry.outcome == 'success'
+        run: |
+          gh pr create --base master --head promote/pr-${{ github.event.pull_request.number }} \
+            --title "Promote: ${{ github.event.pull_request.title }}" \
+            --body "Auto-promovido desde dev PR #${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Notify conflict
+        if: steps.cherry.outcome == 'failure'
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "⚠️ Conflicto al promover automáticamente a master. Requiere resolución manual (ver sección 4 del documento de proceso)."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
