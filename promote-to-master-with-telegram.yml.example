@@ -39,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ═══════════════════════════════════════════════════════════════════════════
-      # Telegram notification on SUCCESS
+      # NEW STEP: Telegram notification on SUCCESS
       # ═══════════════════════════════════════════════════════════════════════════
       - name: Notify Telegram - Success
         if: steps.cherry.outcome == 'success'
@@ -62,7 +62,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ═══════════════════════════════════════════════════════════════════════════
-      # Telegram notification on CONFLICT/FAILURE
+      # NEW STEP: Telegram notification on CONFLICT/FAILURE
       # ═══════════════════════════════════════════════════════════════════════════
       - name: Notify Telegram - Conflict
         if: steps.cherry.outcome == 'failure'
@@ -77,7 +77,7 @@ jobs:
             }'
 
       # ═══════════════════════════════════════════════════════════════════════════
-      # Notification when label is first added (trigger confirmation)
+      # OPTIONAL: Notification when label is first added (trigger confirmation)
       # ═══════════════════════════════════════════════════════════════════════════
       - name: Notify Telegram - Promotion Started
         if: steps.cherry.outcome == 'success' || steps.cherry.outcome == 'failure'
