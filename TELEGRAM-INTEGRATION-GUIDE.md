@@ -51,7 +51,7 @@ Go to **Repository → Settings → Secrets and variables → Actions → New re
             -H "Content-Type: application/json" \
             -d '{
               "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
-              "text": "✅ *PR Promoted Successfully*\n\n*Title:* ${{ github.event.pull_request.title }}\n*Author:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n*Link:* [View Promotion PR](${{ steps.create_pr.outputs.pr_url }})",
+              "text": "✅ *PR Promovido Exitosamente*\n\n*Título:* ${{ github.event.pull_request.title }}\n*Autor:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n*PR de Promoción:* [Ver](${{ steps.create_pr.outputs.pr_url }})",
               "parse_mode": "Markdown",
               "disable_web_page_preview": true
             }'
@@ -71,7 +71,7 @@ Go to **Repository → Settings → Secrets and variables → Actions → New re
             -H "Content-Type: application/json" \
             -d '{
               "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
-              "text": "⚠️ *Promotion Conflict*\n\n*Title:* ${{ github.event.pull_request.title }}\n*Author:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n\n*Action Required:* Manual conflict resolution needed",
+              "text": "⚠️ *Conflicto de Promoción*\n\n*Título:* ${{ github.event.pull_request.title }}\n*Autor:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n\n*Acción Requerida:* Se necesita resolución manual del conflicto",
               "parse_mode": "Markdown",
               "disable_web_page_preview": true
             }'
@@ -121,23 +121,23 @@ See `promote-to-master-with-telegram.yml.example` for the full implementation.
 
 ### Success Message
 ```
-✅ PR Promoted Successfully
+✅ PR Promovido Exitosamente
 
-Title: Add new feature
-Author: developer1
+Título: Add new feature
+Autor: developer1
 PR: #42
-Link: View Promotion PR
+PR de Promoción: Ver
 ```
 
 ### Conflict Message
 ```
-⚠️ Promotion Conflict
+⚠️ Conflicto de Promoción
 
-Title: Add new feature
-Author: developer1
+Título: Add new feature
+Autor: developer1
 PR: #42
 
-Action Required: Manual conflict resolution needed
+Acción Requerida: Se necesita resolución manual del conflicto
 ```
 
 ---
@@ -196,19 +196,19 @@ curl -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
 ### Add Workflow Run Link
 
 ```yaml
-"text": "✅ *PR Promoted*\n\n*Title:* ${{ github.event.pull_request.title }}\n*Workflow:* [View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+"text": "✅ *PR Promovido*\n\n*Título:* ${{ github.event.pull_request.title }}\n*Workflow:* [Ver Ejecución](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
 ```
 
 ### Add Labels/Tags to Messages
 
 ```yaml
-"text": "✅ [PROMOTION] PR #${{ github.event.pull_request.number }} merged to master"
+"text": "✅ [PROMOCIÓN] PR #${{ github.event.pull_request.number }} fusionado a master"
 ```
 
 ### Add Author Avatar
 
 ```yaml
-"text": "✅ *PR Promoted by* ${{ github.event.pull_request.user.login }}\n\n*Title:* ${{ github.event.pull_request.title }}"
+"text": "✅ *PR Promovido por* ${{ github.event.pull_request.user.login }}\n\n*Título:* ${{ github.event.pull_request.title }}"
 ```
 
 ---
