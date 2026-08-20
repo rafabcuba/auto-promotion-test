@@ -254,4 +254,3 @@ Cada PR se mueve manualmente o vía automation rules de GitHub Projects cuando c
 - [ ] Documentar buenas prácticas de PR (sección 2) en el `CONTRIBUTING.md` del repo.
 - [ ] Definir responsable de resolver conflictos de promoción (sección 4.3).
 - [ ] Establecer GitHub Project board para trazabilidad (sección 6).
-
