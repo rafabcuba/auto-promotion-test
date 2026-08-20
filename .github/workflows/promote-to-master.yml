@@ -1,7 +1,7 @@
 name: Promote to master
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, closed]
 permissions:
   contents: write
   pull-requests: write
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   promote:
-    if: github.event.label.name == 'ready-for-master'
+    if: github.event.label.name == 'ready-for-master' && github.event.action == 'labeled'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,17 +29,82 @@ jobs:
 
       - name: Create PR
         if: steps.cherry.outcome == 'success'
+        id: create_pr
         run: |
-          gh pr create --base master --head promote/pr-${{ github.event.pull_request.number }} \
+          PR_URL=$(gh pr create --base master --head promote/pr-${{ github.event.pull_request.number }} \
             --title "Promote: ${{ github.event.pull_request.title }}" \
-            --body "Auto-promovido desde dev PR #${{ github.event.pull_request.number }}"
+            --body "Auto-promovido desde dev PR #${{ github.event.pull_request.number }}")
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Comment conflict on PR
+      # ═══════════════════════════════════════════════════════════════════════════
+      # Telegram notification on SUCCESS
+      # ═══════════════════════════════════════════════════════════════════════════
+      - name: Notify Telegram - Success
+        if: steps.cherry.outcome == 'success'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "text": "✅ *PR Promovido Exitosamente*\n\n*Proyecto:* ${{ github.repository }}\n*Título:* ${{ github.event.pull_request.title }}\n*Autor:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n*PR de Promoción:* [Ver](${{ steps.create_pr.outputs.pr_url }})",
+              "parse_mode": "Markdown",
+              "disable_web_page_preview": true
+            }'
+
+      - name: Notify conflict
         if: steps.cherry.outcome == 'failure'
         run: |
           gh pr comment ${{ github.event.pull_request.number }} \
             --body "⚠️ Conflicto al promover automáticamente a master. Requiere resolución manual (ver sección 4 del documento de proceso)."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ═══════════════════════════════════════════════════════════════════════════
+      # Telegram notification on CONFLICT/FAILURE
+      # ═══════════════════════════════════════════════════════════════════════════
+      - name: Notify Telegram - Conflict
+        if: steps.cherry.outcome == 'failure'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "text": "⚠️ *Conflicto de Promoción*\n\n*Proyecto:* ${{ github.repository }}\n*Título:* ${{ github.event.pull_request.title }}\n*Autor:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n\n*Acción Requerida:* Se necesita resolución manual del conflicto",
+              "parse_mode": "Markdown",
+              "disable_web_page_preview": true
+            }'
+
+      # ═══════════════════════════════════════════════════════════════════════════
+      # Notification when label is first added (trigger confirmation)
+      # ═══════════════════════════════════════════════════════════════════════════
+      - name: Notify Telegram - Promotion Started
+        if: steps.cherry.outcome == 'success' || steps.cherry.outcome == 'failure'
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "text": "🔄 *Proceso de Promoción Iniciado*\n\n*Proyecto:* ${{ github.repository }}\n*PR:* #${{ github.event.pull_request.number }}\n*Estado:* ${{ steps.cherry.outcome }}",
+              "parse_mode": "Markdown",
+              "disable_web_page_preview": true
+            }'
+
+  # ═══════════════════════════════════════════════════════════════════════════════
+  # Notificación cuando se merge el PR de promoción
+  # ═══════════════════════════════════════════════════════════════════════════════
+  notify-merged:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'Promote:')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Telegram - Promotion Merged
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+              "text": "🚀 *PR de Promoción Merged en Master*\n\n*Proyecto:* ${{ github.repository }}\n*Título:* ${{ github.event.pull_request.title }}\n*Autor:* ${{ github.event.pull_request.user.login }}\n*PR:* #${{ github.event.pull_request.number }}\n*Commits:* ${{ github.event.pull_request.commits }}",
+              "parse_mode": "Markdown",
+              "disable_web_page_preview": true
+            }'
