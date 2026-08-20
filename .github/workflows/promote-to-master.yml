@@ -79,17 +79,17 @@ jobs:
       # ═══════════════════════════════════════════════════════════════════════════
       # Notification when label is first added (trigger confirmation)
       # ═══════════════════════════════════════════════════════════════════════════
-      - name: Notify Telegram - Promotion Started
-        if: steps.cherry.outcome == 'success' || steps.cherry.outcome == 'failure'
-        run: |
-          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
-              "text": "🔄 *Proceso de Promoción Iniciado*\n\n*Proyecto:* ${{ github.repository }}\n*PR:* #${{ github.event.pull_request.number }}\n*Estado:* ${{ steps.cherry.outcome }}",
-              "parse_mode": "Markdown",
-              "disable_web_page_preview": true
-            }'
+      # - name: Notify Telegram - Promotion Started
+      #   if: steps.cherry.outcome == 'success' || steps.cherry.outcome == 'failure'
+      #   run: |
+      #     curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+      #       -H "Content-Type: application/json" \
+      #       -d '{
+      #         "chat_id": "${{ secrets.TELEGRAM_CHAT_ID }}",
+      #         "text": "🔄 *Proceso de Promoción Iniciado*\n\n*Proyecto:* ${{ github.repository }}\n*PR:* #${{ github.event.pull_request.number }}\n*Estado:* ${{ steps.cherry.outcome }}",
+      #         "parse_mode": "Markdown",
+      #         "disable_web_page_preview": true
+      #       }'
 
   # ═══════════════════════════════════════════════════════════════════════════════
   # Notificación cuando se merge el PR de promoción
